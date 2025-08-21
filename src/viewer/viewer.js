@@ -1406,7 +1406,7 @@ export class Viewer extends EventDispatcher {
 
 	initThree() {
 
-		console.log(`initializing three.js ${THREE.REVISION}`);
+		// console.log(`initializing three.js ${THREE.REVISION}`);
 
 		let width = this.renderArea.clientWidth;
 		let height = this.renderArea.clientHeight;
