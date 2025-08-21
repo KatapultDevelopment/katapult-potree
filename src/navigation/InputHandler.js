@@ -5,19 +5,19 @@
  */
 
 import * as THREE from "../../libs/three.js/build/three.module.js";
-import {KeyCodes} from "../KeyCodes.js";
-import {Utils} from "../utils.js";
-import {EventDispatcher} from "../EventDispatcher.js";
+import { KeyCodes } from "../KeyCodes.js";
+import { Utils } from "../utils.js";
+import { EventDispatcher } from "../EventDispatcher.js";
 
 export class InputHandler extends EventDispatcher {
-	constructor (viewer) {
+	constructor(viewer) {
 		super();
 
 		this.viewer = viewer;
 		this.renderer = viewer.renderer;
 		this.domElement = this.renderer.domElement;
 		this.enabled = true;
-		
+
 		this.scene = null;
 		this.interactiveScenes = [];
 		this.interactiveObjects = new Set();
@@ -42,31 +42,45 @@ export class InputHandler extends EventDispatcher {
 			this.domElement.tabIndex = 2222;
 		}
 
-		this.domElement.addEventListener('contextmenu', (event) => { event.preventDefault(); }, false);
-		this.domElement.addEventListener('click', this.onMouseClick.bind(this), false);
-		this.domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false);
-		this.domElement.addEventListener('mouseup', this.onMouseUp.bind(this), false);
-		this.domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false);
-		this.domElement.addEventListener('mousewheel', this.onMouseWheel.bind(this), false);
-		this.domElement.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false); // Firefox
-		this.domElement.addEventListener('dblclick', this.onDoubleClick.bind(this));
-		this.domElement.addEventListener('keydown', this.onKeyDown.bind(this));
-		this.domElement.addEventListener('keyup', this.onKeyUp.bind(this));
-		this.domElement.addEventListener('touchstart', this.onTouchStart.bind(this));
-		this.domElement.addEventListener('touchend', this.onTouchEnd.bind(this));
-		this.domElement.addEventListener('touchmove', this.onTouchMove.bind(this));
+		// Katapult: BMF Customized: storing event listeners so we can remove them when we want to override them
+		// EX: this.domElement.removeEventListener('mousedown', this._boundOnMouseDown, false);
+		// In our code, inputHandler is available on the viewer object. Each of these are stored as methods on the inputHandler object.
+		// i.e. potreeViewer.value.inputHander._boundOnMouseClick
+		this._boundOnContextMenu = (event) => { event.preventDefault(); };
+		this.domElement.addEventListener('contextmenu', this._boundOnContextMenu, false);
+		this._boundOnMouseClick = this.onMouseClick.bind(this);
+		this.domElement.addEventListener('click', this._boundOnMouseClick, false);
+		this._boundOnMouseDown = this.onMouseDown.bind(this);
+		this.domElement.addEventListener('mousedown', this._boundOnMouseDown, false);
+		this._boundOnMouseUp = this.onMouseUp.bind(this);
+		this.domElement.addEventListener('mouseup', this._boundOnMouseUp, false);
+		this._boundOnMouseMove = this.onMouseMove.bind(this);
+		this.domElement.addEventListener('mousemove', this._boundOnMouseMove, false);
+		this._boundOnMouseWheel = this.onMouseWheel.bind(this);
+		this.domElement.addEventListener('mousewheel', this._boundOnMouseWheel, false);
+		this.domElement.addEventListener('DOMMouseScroll', this._boundOnMouseWheel, false); // Firefox
+		this._boundOnDoubleClick = this.onDoubleClick.bind(this);
+		this.domElement.addEventListener('dblclick', this._boundOnDoubleClick);
+		this._boundOnKeyDown = this.onKeyDown.bind(this);
+		this.domElement.addEventListener('keyup', this._boundOnKeyDown);
+		this._boundOnTouchStart = this.onTouchStart.bind(this);
+		this.domElement.addEventListener('touchstart', this._boundOnTouchStart);
+		this._boundOnTouchEnd = this.onTouchEnd.bind(this);
+		this.domElement.addEventListener('touchend', this._boundOnTouchEnd);
+		this._boundOnTouchMove = this.onTouchMove.bind(this);
+		this.domElement.addEventListener('touchmove', this._boundOnTouchMove);
 	}
 
-	addInputListener (listener) {
+	addInputListener(listener) {
 		this.inputListeners.push(listener);
 	}
 
-	removeInputListener (listener) {
+	removeInputListener(listener) {
 		this.inputListeners = this.inputListeners.filter(e => e !== listener);
 	}
 
-	getSortedListeners(){
-		return this.inputListeners.sort( (a, b) => {
+	getSortedListeners() {
+		return this.inputListeners.sort((a, b) => {
 			let ia = (a.importance !== undefined) ? a.importance : 0;
 			let ib = (b.importance !== undefined) ? b.importance : 0;
 
@@ -74,7 +88,7 @@ export class InputHandler extends EventDispatcher {
 		});
 	}
 
-	onTouchStart (e) {
+	onTouchStart(e) {
 		if (this.logMessages) console.log(this.constructor.name + ': onTouchStart');
 
 		e.preventDefault();
@@ -88,7 +102,7 @@ export class InputHandler extends EventDispatcher {
 			this.startDragging(null);
 		}
 
-		
+
 		for (let inputListener of this.getSortedListeners()) {
 			inputListener.dispatchEvent({
 				type: e.type,
@@ -98,7 +112,7 @@ export class InputHandler extends EventDispatcher {
 		}
 	}
 
-	onTouchEnd (e) {
+	onTouchEnd(e) {
 		if (this.logMessages) console.log(this.constructor.name + ': onTouchEnd');
 
 		e.preventDefault();
@@ -122,7 +136,7 @@ export class InputHandler extends EventDispatcher {
 		}
 	}
 
-	onTouchMove (e) {
+	onTouchMove(e) {
 		if (this.logMessages) console.log(this.constructor.name + ': onTouchMove');
 
 		e.preventDefault();
@@ -173,7 +187,7 @@ export class InputHandler extends EventDispatcher {
 		// }
 	}
 
-	onKeyDown (e) {
+	onKeyDown(e) {
 		if (this.logMessages) console.log(this.constructor.name + ': onKeyDown');
 
 		// DELETE
@@ -205,7 +219,7 @@ export class InputHandler extends EventDispatcher {
 		// e.preventDefault();
 	}
 
-	onKeyUp (e) {
+	onKeyUp(e) {
 		if (this.logMessages) console.log(this.constructor.name + ': onKeyUp');
 
 		delete this.pressedKeys[e.keyCode];
@@ -213,7 +227,7 @@ export class InputHandler extends EventDispatcher {
 		e.preventDefault();
 	}
 
-	onDoubleClick (e) {
+	onDoubleClick(e) {
 		if (this.logMessages) console.log(this.constructor.name + ': onDoubleClick');
 
 		let consumed = false;
@@ -242,13 +256,13 @@ export class InputHandler extends EventDispatcher {
 		e.preventDefault();
 	}
 
-	onMouseClick (e) {
+	onMouseClick(e) {
 		if (this.logMessages) console.log(this.constructor.name + ': onMouseClick');
 
 		e.preventDefault();
 	}
 
-	onMouseDown (e) {
+	onMouseDown(e) {
 		if (this.logMessages) console.log(this.constructor.name + ': onMouseDown');
 
 		e.preventDefault();
@@ -263,8 +277,8 @@ export class InputHandler extends EventDispatcher {
 					mouse: this.mouse
 				});
 			}
-		}else{
-			for(let hovered of this.hoveredElements){
+		} else {
+			for (let hovered of this.hoveredElements) {
 				let object = hovered.object;
 				object.dispatchEvent({
 					type: 'mousedown',
@@ -272,7 +286,7 @@ export class InputHandler extends EventDispatcher {
 					consume: consume
 				});
 
-				if(consumed){
+				if (consumed) {
 					break;
 				}
 			}
@@ -286,7 +300,7 @@ export class InputHandler extends EventDispatcher {
 					el.object._listeners['drag'].length > 0));
 
 			if (target) {
-				this.startDragging(target.object, {location: target.point});
+				this.startDragging(target.object, { location: target.point });
 			} else {
 				this.startDragging(null);
 			}
@@ -297,14 +311,14 @@ export class InputHandler extends EventDispatcher {
 		}
 	}
 
-	onMouseUp (e) {
+	onMouseUp(e) {
 		if (this.logMessages) console.log(this.constructor.name + ': onMouseUp');
 
 		e.preventDefault();
 
 		let noMovement = this.getNormalizedDrag().length() === 0;
 
-		
+
 		let consumed = false;
 		let consume = () => { return consumed = true; };
 		if (this.hoveredElements.length === 0) {
@@ -316,15 +330,15 @@ export class InputHandler extends EventDispatcher {
 					consume: consume
 				});
 
-				if(consumed){
+				if (consumed) {
 					break;
 				}
 			}
-		}else{
+		} else {
 			let hovered = this.hoveredElements
 				.map(e => e.object)
 				.find(e => (e._listeners && e._listeners['mouseup']));
-			if(hovered){
+			if (hovered) {
 				hovered.dispatchEvent({
 					type: 'mouseup',
 					viewer: this.viewer,
@@ -354,7 +368,7 @@ export class InputHandler extends EventDispatcher {
 
 			// check for a click
 			let clicked = this.hoveredElements.map(h => h.object).find(v => v === this.drag.object) !== undefined;
-			if(clicked){
+			if (clicked) {
 				if (this.logMessages) console.log(`${this.constructor.name}: click ${this.drag.object.name}`);
 				this.drag.object.dispatchEvent({
 					type: 'click',
@@ -366,7 +380,7 @@ export class InputHandler extends EventDispatcher {
 			this.drag = null;
 		}
 
-		if(!consumed){
+		if (!consumed) {
 			if (e.button === THREE.MOUSE.LEFT) {
 				if (noMovement) {
 					let selectable = this.hoveredElements
@@ -393,7 +407,7 @@ export class InputHandler extends EventDispatcher {
 		}
 	}
 
-	onMouseMove (e) {
+	onMouseMove(e) {
 		e.preventDefault();
 
 		let rect = this.domElement.getBoundingClientRect();
@@ -402,7 +416,7 @@ export class InputHandler extends EventDispatcher {
 		this.mouse.set(x, y);
 
 		let hoveredElements = this.getHoveredElements();
-		if(hoveredElements.length > 0){
+		if (hoveredElements.length > 0) {
 			let names = hoveredElements.map(h => h.object.name).join(", ");
 			if (this.logMessages) console.log(`${this.constructor.name}: onMouseMove; hovered: '${names}'`);
 		}
@@ -431,27 +445,27 @@ export class InputHandler extends EventDispatcher {
 						type: 'drag',
 						drag: this.drag,
 						viewer: this.viewer,
-						consume: () => {dragConsumed = true;}
+						consume: () => { dragConsumed = true; }
 					});
 
-					if(dragConsumed){
+					if (dragConsumed) {
 						break;
 					}
 				}
 			}
-		}else{
+		} else {
 			let curr = hoveredElements.map(a => a.object).find(a => true);
 			let prev = this.hoveredElements.map(a => a.object).find(a => true);
 
-			if(curr !== prev){
-				if(curr){
+			if (curr !== prev) {
+				if (curr) {
 					if (this.logMessages) console.log(`${this.constructor.name}: mouseover: ${curr.name}`);
 					curr.dispatchEvent({
 						type: 'mouseover',
 						object: curr,
 					});
 				}
-				if(prev){
+				if (prev) {
 					if (this.logMessages) console.log(`${this.constructor.name}: mouseleave: ${prev.name}`);
 					prev.dispatchEvent({
 						type: 'mouseleave',
@@ -460,12 +474,12 @@ export class InputHandler extends EventDispatcher {
 				}
 			}
 
-			if(hoveredElements.length > 0){
+			if (hoveredElements.length > 0) {
 				let object = hoveredElements
 					.map(e => e.object)
 					.find(e => (e._listeners && e._listeners['mousemove']));
-				
-				if(object){
+
+				if (object) {
 					object.dispatchEvent({
 						type: 'mousemove',
 						object: object
@@ -474,23 +488,23 @@ export class InputHandler extends EventDispatcher {
 			}
 
 		}
-		
+
 		// for (let inputListener of this.getSortedListeners()) {
 		// 	inputListener.dispatchEvent({
 		// 		type: 'mousemove',
 		// 		object: null
 		// 	});
 		// }
-		
+
 
 		this.hoveredElements = hoveredElements;
 	}
-	
-	onMouseWheel(e){
-		if(!this.enabled) return;
 
-		if(this.logMessages) console.log(this.constructor.name + ": onMouseWheel");
-		
+	onMouseWheel(e) {
+		if (!this.enabled) return;
+
+		if (this.logMessages) console.log(this.constructor.name + ": onMouseWheel");
+
 		e.preventDefault();
 
 		let delta = 0;
@@ -521,7 +535,7 @@ export class InputHandler extends EventDispatcher {
 		}
 	}
 
-	startDragging (object, args = null) {
+	startDragging(object, args = null) {
 
 		let name = object ? object.name : "no name";
 		if (this.logMessages) console.log(`${this.constructor.name}: startDragging: '${name}'`);
@@ -541,15 +555,15 @@ export class InputHandler extends EventDispatcher {
 		}
 	}
 
-	getMousePointCloudIntersection (mouse) {
+	getMousePointCloudIntersection(mouse) {
 		return Utils.getMousePointCloudIntersection(
-			this.mouse, 
-			this.scene.getActiveCamera(), 
-			this.viewer, 
+			this.mouse,
+			this.scene.getActiveCamera(),
+			this.viewer,
 			this.scene.pointclouds);
 	}
 
-	toggleSelection (object) {
+	toggleSelection(object) {
 		let oldSelection = this.selection;
 
 		let index = this.selection.indexOf(object);
@@ -573,13 +587,13 @@ export class InputHandler extends EventDispatcher {
 		});
 	}
 
-	deselect(object){
+	deselect(object) {
 
 		let oldSelection = this.selection;
 
 		let index = this.selection.indexOf(object);
 
-		if(index >= 0){
+		if (index >= 0) {
 			this.selection.splice(index, 1);
 			object.dispatchEvent({
 				type: 'deselect'
@@ -593,7 +607,7 @@ export class InputHandler extends EventDispatcher {
 		}
 	}
 
-	deselectAll () {
+	deselectAll() {
 		for (let object of this.selection) {
 			object.dispatchEvent({
 				type: 'deselect'
@@ -612,35 +626,35 @@ export class InputHandler extends EventDispatcher {
 		}
 	}
 
-	isSelected (object) {
+	isSelected(object) {
 		let index = this.selection.indexOf(object);
 
 		return index !== -1;
 	}
 
-	registerInteractiveObject(object){
+	registerInteractiveObject(object) {
 		this.interactiveObjects.add(object);
 	}
 
-	removeInteractiveObject(object){
+	removeInteractiveObject(object) {
 		this.interactiveObjects.delete(object);
 	}
 
-	registerInteractiveScene (scene) {
+	registerInteractiveScene(scene) {
 		let index = this.interactiveScenes.indexOf(scene);
 		if (index === -1) {
 			this.interactiveScenes.push(scene);
 		}
 	}
 
-	unregisterInteractiveScene (scene) {
+	unregisterInteractiveScene(scene) {
 		let index = this.interactiveScenes.indexOf(scene);
 		if (index > -1) {
 			this.interactiveScenes.splice(index, 1);
 		}
 	}
 
-	getHoveredElement () {
+	getHoveredElement() {
 		let hoveredElements = this.getHoveredElements();
 		if (hoveredElements.length > 0) {
 			return hoveredElements[0];
@@ -649,7 +663,7 @@ export class InputHandler extends EventDispatcher {
 		}
 	}
 
-	getHoveredElements () {
+	getHoveredElements() {
 		let scenes = this.interactiveScenes.concat(this.scene.scene);
 
 		let interactableListeners = ['mouseup', 'mousemove', 'mouseover', 'mouseleave', 'drag', 'drop', 'click', 'select', 'deselect'];
@@ -667,10 +681,10 @@ export class InputHandler extends EventDispatcher {
 				}
 			});
 		}
-		
+
 		let camera = this.scene.getActiveCamera();
 		let ray = Utils.mouseToRay(this.mouse, camera, this.domElement.clientWidth, this.domElement.clientHeight);
-		
+
 		let raycaster = new THREE.Raycaster();
 		raycaster.ray.set(ray.origin, ray.direction);
 		raycaster.params.Line.threshold = 0.2;
@@ -680,17 +694,17 @@ export class InputHandler extends EventDispatcher {
 		return intersections;
 	}
 
-	setScene (scene) {
+	setScene(scene) {
 		this.deselectAll();
 
 		this.scene = scene;
 	}
 
-	update (delta) {
+	update(delta) {
 
 	}
 
-	getNormalizedDrag () {
+	getNormalizedDrag() {
 		if (!this.drag) {
 			return new THREE.Vector2(0, 0);
 		}
@@ -703,7 +717,7 @@ export class InputHandler extends EventDispatcher {
 		return diff;
 	}
 
-	getNormalizedLastDrag () {
+	getNormalizedLastDrag() {
 		if (!this.drag) {
 			return new THREE.Vector2(0, 0);
 		}
