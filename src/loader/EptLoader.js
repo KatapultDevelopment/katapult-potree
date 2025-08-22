@@ -21,7 +21,7 @@ export class EptLoader {
 
 export class CopcLoader {
 	static async load(urlOrFile, callback) {
-		const { Copc, Getter } = window.CopcWrapper
+		const { Copc, Getter } = window.CopcLib
 
 		const getter = Getter.create(urlOrFile); // Katapult BMF changed from Getter.http()
 		const copc = await Copc.create(getter);

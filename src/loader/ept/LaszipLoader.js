@@ -4,8 +4,7 @@ export class EptLaszipLoader {
 	async load(node) {
 		if (node.loaded) return;
 
-		const { Copc } = window.CopcWrapper
-		const { Key } = Copc
+		const { Key } = window.CopcLib;
 
 		const url = `${node.owner.base}/ept-data/${Key.toString(node.key)}.laz`
 		const response = await fetch(url);
@@ -17,7 +16,7 @@ export class EptLaszipLoader {
 		let handler = new EptLazBatcher(node);
 
 		try {
-			const { Bounds, Las } = Copc
+			const { Bounds, Las } = window.CopcLib
 
 			const get = (begin, end) => new Uint8Array(compressed, begin, end - begin)
 

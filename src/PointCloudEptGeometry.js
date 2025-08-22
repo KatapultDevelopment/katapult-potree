@@ -109,8 +109,7 @@ export class PointCloudCopcGeometry extends BaseGeometry {
 	}
 
 	async loadHierarchyPage(key) {
-		const { Copc } = window.CopcWrapper
-		const { Key } = Copc
+		const { Copc, Key } = window.CopcLib
 		const page = this.pages[Key.toString(key)]
 		return Copc.loadHierarchyPage(this.getter, page)
 	}
@@ -152,8 +151,7 @@ export class PointCloudEptGeometry extends BaseGeometry {
 	}
 
 	async loadHierarchyPage(key) {
-		const { Copc } = window.CopcWrapper
-		const { Ept, Key } = Copc
+		const { Ept, Key } = window.CopcLib
 
 		const filename = `${this.base}/ept-hierarchy/${Key.toString(key)}.json`
 		const response = await fetch(filename);
@@ -166,8 +164,7 @@ export class PointCloudCopcGeometryNode extends PointCloudTreeNode {
 	constructor(owner, key, bounds) {
 		super();
 
-		const { Copc } = window.CopcWrapper
-		const { Key } = Copc
+		const { Key } = window.CopcLib;
 
 		this.owner = owner
 		this.key = key || Key.create(0, 0, 0, 0)
@@ -238,8 +235,7 @@ export class PointCloudCopcGeometryNode extends PointCloudTreeNode {
 	}
 
 	async loadHierarchy() {
-		const { Copc } = window.CopcWrapper
-		const { Bounds, Key } = Copc
+		const { Bounds, Key } = window.CopcLib;
 		const ourkeyname = Key.toString(this.key)
 
 		let nodemap = { };
