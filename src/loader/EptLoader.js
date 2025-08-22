@@ -20,11 +20,10 @@ export class EptLoader {
 };
 
 export class CopcLoader {
-	static async load(file, callback) {
-		const { Copc, Getter } = window.Copc
+	static async load(urlOrFile, callback) {
+		const { Copc, Getter } = window.CopcWrapper
 
-		const url = file;
-		const getter = Getter.http(url);
+		const getter = Getter.create(urlOrFile); // Katapult BMF changed from Getter.http()
 		const copc = await Copc.create(getter);
 
 		let geometry = new Potree.PointCloudCopcGeometry(getter, copc);

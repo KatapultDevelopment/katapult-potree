@@ -128,7 +128,7 @@ let resourcePath = scriptPath + '/resources';
 export {scriptPath, resourcePath};
 
 
-export function loadPointCloud(path, name, callback){
+export function loadPointCloud(urlOrFile, name, callback, isCopc = false){
 	let loaded = function(e){
 		e.pointcloud.name = name;
 		callback(e);
@@ -136,7 +136,45 @@ export function loadPointCloud(path, name, callback){
 
 	let promise = new Promise( resolve => {
 
-		// load pointcloud
+		// Check if urlOrFile is a File object or a URL string
+		if (urlOrFile instanceof File) {
+			console.log("name: ", name, " copc: ", isCopc);
+			if (isCopc) {
+				// Call CopcLoader for File objects when isCopc is true
+				CopcLoader.load(urlOrFile, function(geometry) {
+					if (!geometry) {
+						console.error(new Error(`failed to load point cloud from File: ${urlOrFile.name}`));
+					}
+					else {
+						let pointcloud = new PointCloudOctree(geometry);
+						resolve({type: 'pointcloud_loaded', pointcloud: pointcloud});
+					}
+				});
+				return;
+			} else {
+				console.log("Non-COPC files are not handled yet");
+				return;
+			}
+		}
+
+		// If not a File object, define path = urlOrFile
+		let path = urlOrFile;
+
+		// If not a File object but isCopc is true, call CopcLoader
+		if (isCopc && !(urlOrFile instanceof File)) {
+			CopcLoader.load(path, function(geometry) {
+				if (!geometry) {
+					console.error(new Error(`failed to load point cloud from URL: ${path}`));
+				}
+				else {
+					let pointcloud = new PointCloudOctree(geometry);
+					resolve({type: 'pointcloud_loaded', pointcloud: pointcloud});
+				}
+			});
+			return;
+		}
+
+		// Original loader logic for all other cases
 		if (!path){
 			// TODO: callback? comment? Hello? Bueller? Anyone?
 		} else if (path.includes('ept.json')) {

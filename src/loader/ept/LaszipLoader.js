@@ -4,7 +4,8 @@ export class EptLaszipLoader {
 	async load(node) {
 		if (node.loaded) return;
 
-		const { Key } = window.Copc
+		const { Copc } = window.CopcWrapper
+		const { Key } = Copc
 
 		const url = `${node.owner.base}/ept-data/${Key.toString(node.key)}.laz`
 		const response = await fetch(url);
