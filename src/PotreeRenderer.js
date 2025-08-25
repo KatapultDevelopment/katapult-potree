@@ -328,7 +328,7 @@ class Shader {
 		const tEnd = performance.now();
 		const duration = tEnd - tStart;
 
-		console.log(`shader compile duration: ${duration.toFixed(3)}`);
+		// console.log(`shader compile duration: ${duration.toFixed(3)}`);
 
 
 	}
