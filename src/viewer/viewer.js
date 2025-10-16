@@ -313,14 +313,15 @@ export class Viewer extends EventDispatcher {
       }
 
       // start rendering!
-      console.log("Katapult: disabled auto-start of render loop");
       // Katapult: BMF modified - was commented out; we put it back in
       // When syncing Cesium & Potree, we need to control the render loop
       // if (args.useDefaultRenderLoop === undefined || args.useDefaultRenderLoop === true) {
       // 	requestAnimationFrame(this.loop.bind(this));
       // }
 
-      // this.renderer.setAnimationLoop(this.loop.bind(this));
+      console.log("Katapult: trying one-bound loop");
+      const boundLoop = this.loop.bind(this);
+      this.renderer.setAnimationLoop(boundLoop);
 
       this.loadGUI = this.loadGUI.bind(this);
 
