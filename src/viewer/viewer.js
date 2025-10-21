@@ -324,6 +324,12 @@ export class Viewer extends EventDispatcher {
       // if (args.useDefaultRenderLoop === undefined || args.useDefaultRenderLoop === true) {
       // 	requestAnimationFrame(this.loop.bind(this));
       // }
+      // start rendering!
+      // Katapult: BMF modified - was commented out; we put it back in
+      // When syncing Cesium & Potree, we need to control the render loop
+      // if (args.useDefaultRenderLoop === undefined || args.useDefaultRenderLoop === true) {
+      // 	requestAnimationFrame(this.loop.bind(this));
+      // }
 
       // this.renderer.setAnimationLoop(this.loop.bind(this));
 	  */
