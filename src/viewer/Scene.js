@@ -151,6 +151,7 @@ export class Scene extends EventDispatcher{
 	 */
 	removePointCloud(pointcloud) {
 		let index = this.pointclouds.indexOf(pointcloud);
+		console.log("Removing point cloud:", pointcloud, "at index:", index);
 		if (index > -1) {
 			// 1. Dispose all geometry nodes in the octree
 			if (pointcloud.visibleNodes) {
