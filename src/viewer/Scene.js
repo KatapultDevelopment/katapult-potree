@@ -236,11 +236,11 @@ export class Scene extends EventDispatcher{
 			node.sceneNode.parent.remove(node.sceneNode);
 		}
 		
-		// Recursively dispose children
+		// Recursively dispose children (octree uses sparse array with 8 slots)
 		if (node.children) {
-			for (let child of node.children) {
-				if (child) {
-					this._disposeNodeRecursive(child);
+			for (let i = 0; i < 8; i++) {
+				if (node.children[i]) {
+					this._disposeNodeRecursive(node.children[i]);
 				}
 			}
 		}
