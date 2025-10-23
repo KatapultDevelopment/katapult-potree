@@ -130,6 +130,159 @@ export class Scene extends EventDispatcher{
 		});
 	}
 
+	/**
+	 * KATAPULT MODIFICATION - 2025-10-23
+	 * 
+	 * Removes a point cloud from the scene and properly disposes all associated resources.
+	 * This includes geometry buffers, materials, textures, and scene nodes.
+	 * 
+	 * IMPORTANT: This method safely handles shared materials between point clouds.
+	 * Materials and their textures are only disposed if no other point cloud references them.
+	 * 
+	 * @param {PointCloudOctree} pointcloud - The point cloud to remove
+	 * 
+	 * TODO: Verify this works correctly in production with:
+	 *       - Multiple point clouds
+	 *       - Shared materials
+	 *       - Memory leak testing (check DevTools Memory profiler)
+	 *       - Ensure other point clouds remain functional after removal
+	 * 
+	 * @author Katapult Development
+	 */
+	removePointCloud(pointcloud) {
+		let index = this.pointclouds.indexOf(pointcloud);
+		if (index > -1) {
+			// 1. Dispose all geometry nodes in the octree
+			if (pointcloud.visibleNodes) {
+				for (let node of pointcloud.visibleNodes) {
+					if (node.geometryNode && node.geometryNode.geometry) {
+						node.geometryNode.geometry.dispose();
+					}
+				}
+			}
+			
+			// Recursively dispose all nodes in the tree
+			if (pointcloud.root) {
+				this._disposeNodeRecursive(pointcloud.root);
+			}
+			
+			// 2. Dispose pickState resources if they exist
+			if (pointcloud.pickState) {
+				if (pointcloud.pickState.renderTarget) {
+					pointcloud.pickState.renderTarget.dispose();
+				}
+				// Check if pickState material is shared before disposing
+				if (pointcloud.pickState.material) {
+					let pickMaterialIsShared = this.pointclouds.some(pc => 
+						pc !== pointcloud && 
+						pc.pickState && 
+						pc.pickState.material === pointcloud.pickState.material
+					);
+					if (!pickMaterialIsShared) {
+						this._disposeMaterial(pointcloud.pickState.material);
+					}
+				}
+			}
+			
+			// 3. Dispose the main material and all its textures (only if not shared)
+			if (pointcloud.material) {
+				// Check if any other point cloud shares this material
+				let materialIsShared = this.pointclouds.some(pc => 
+					pc !== pointcloud && pc.material === pointcloud.material
+				);
+				if (!materialIsShared) {
+					this._disposeMaterial(pointcloud.material);
+				}
+			}
+			
+			// 4. Remove from THREE.js scene hierarchy
+			this.scenePointCloud.remove(pointcloud);
+			
+			// 5. Remove from array
+			this.pointclouds.splice(index, 1);
+			
+			// 6. Dispatch event
+			this.dispatchEvent({
+				type: 'pointcloud_removed',
+				pointcloud: pointcloud
+			});
+		}
+	}
+
+	/**
+	 * KATAPULT MODIFICATION - 2025-10-23
+	 * 
+	 * Helper method to recursively dispose node geometries throughout the octree structure.
+	 * Traverses the entire tree and cleans up geometry buffers and scene nodes.
+	 * 
+	 * @param {PointCloudOctreeNode} node - The node to dispose (recursive)
+	 * @private
+	 * 
+	 * TODO: Verify this properly handles all node types in the octree
+	 * 
+	 * @author Katapult Development
+	 */
+	_disposeNodeRecursive(node) {
+		if (!node) return;
+		
+		// Dispose geometry if it exists
+		if (node.geometryNode && node.geometryNode.geometry) {
+			node.geometryNode.geometry.dispose();
+		}
+		
+		// Remove scene node from parent
+		if (node.sceneNode && node.sceneNode.parent) {
+			node.sceneNode.parent.remove(node.sceneNode);
+		}
+		
+		// Recursively dispose children
+		if (node.children) {
+			for (let child of node.children) {
+				if (child) {
+					this._disposeNodeRecursive(child);
+				}
+			}
+		}
+	}
+
+	/**
+	 * KATAPULT MODIFICATION - 2025-10-23
+	 * 
+	 * Helper method to dispose a PointCloudMaterial and all its associated textures.
+	 * Cleans up GPU resources for: visibleNodesTexture, gradientTexture, 
+	 * matcapTexture, and classificationTexture.
+	 * 
+	 * WARNING: Only call this if you've verified the material is not shared
+	 * with other point clouds using the shared material checks in removePointCloud().
+	 * 
+	 * @param {PointCloudMaterial} material - The material to dispose
+	 * @private
+	 * 
+	 * TODO: Verify all texture types used by PointCloudMaterial are covered
+	 * 
+	 * @author Katapult Development
+	 */
+	_disposeMaterial(material) {
+		if (!material) return;
+		
+		// Dispose textures used by the material
+		if (material.visibleNodesTexture) {
+			material.visibleNodesTexture.dispose();
+		}
+		if (material.gradientTexture) {
+			material.gradientTexture.dispose();
+		}
+		if (material.matcapTexture) {
+			material.matcapTexture.dispose();
+		}
+		if (material.classificationTexture) {
+			material.classificationTexture.dispose();
+		}
+		
+		// Dispose the material itself
+		material.dispose();
+	}
+
 	addVolume (volume) {
 		this.volumes.push(volume);
 		this.dispatchEvent({
