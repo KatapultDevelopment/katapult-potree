@@ -312,7 +312,6 @@ export class Viewer extends EventDispatcher {
         this.loadSettingsFromURL();
       }
 
-      console.log("Render loop disabled by Katapult BMF modification");
       /* ***** KATAPULT BMF MODIFIED *****
 	  Disabling the default render loop to allow external control when syncing Cesium & Potree.
 	  Below, the first is the older type of render loop in THREE.js.
