@@ -72,6 +72,7 @@ export * from "./modules/loader/2.0/OctreeLoader.js";
 export {OrbitControls} from "./navigation/OrbitControls.js";
 export {FirstPersonControls} from "./navigation/FirstPersonControls.js";
 export {EarthControls} from "./navigation/EarthControls.js";
+export {SwappedEarthControls} from "./navigation/SwappedEarthControls.js";
 export {DeviceOrientationControls} from "./navigation/DeviceOrientationControls.js";
 export {VRControls} from "./navigation/VRControls.js";
 

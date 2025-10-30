@@ -32,6 +32,7 @@ import { Compass } from "../utils/Compass.js";
 import { OrbitControls } from "../navigation/OrbitControls.js";
 import { FirstPersonControls } from "../navigation/FirstPersonControls.js";
 import { EarthControls } from "../navigation/EarthControls.js";
+import { SwappedEarthControls } from "../navigation/SwappedEarthControls.js";
 import { DeviceOrientationControls } from "../navigation/DeviceOrientationControls.js";
 import { VRControls } from "../navigation/VRControls.js";
 import { EventDispatcher } from "../EventDispatcher.js";
@@ -1152,6 +1153,14 @@ export class Viewer extends EventDispatcher {
       this.earthControls.enabled = false;
       this.earthControls.addEventListener("start", this.disableAnnotations.bind(this));
       this.earthControls.addEventListener("end", this.enableAnnotations.bind(this));
+    }
+
+    {
+      // create SWAPPED EARTH CONTROLS
+      this.swappedEarthControls = new SwappedEarthControls(this);
+      this.swappedEarthControls.enabled = false;
+      this.swappedEarthControls.addEventListener("start", this.disableAnnotations.bind(this));
+      this.swappedEarthControls.addEventListener("end", this.enableAnnotations.bind(this));
     }
 
     {
