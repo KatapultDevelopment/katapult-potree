@@ -1140,14 +1140,43 @@ export class PointCloudOctree extends PointCloudTree {
 
 	}
 
+	/**
+	 * KATAPULT MODIFICATION - 2025-11-04
+	 * 
+	 * Forces a reload of all currently visible nodes by disposing their geometries
+	 * and clearing the visibility arrays. The visibility system will automatically
+	 * reload the nodes on the next frame.
+	 * 
+	 * This is useful when point sizes or other rendering properties get "stuck" on
+	 * certain nodes and need to be refreshed. The method is memory-safe because:
+	 * - dispose() frees GPU buffers
+	 * - Dispose handlers automatically remove scene nodes from hierarchy
+	 * - Nodes revert to lightweight unloaded geometry nodes
+	 * - The visibility system can reload them fresh on next frame
+	 * 
+	 * Usage:
+	 *   pointcloud.forceReloadVisibleNodes();
+	 * 
+	 * @author Katapult Development
+	 */
+	forceReloadVisibleNodes() {
+		// Copy array to avoid issues with array modification during iteration
+		const nodesToReload = this.visibleNodes.slice();
+		
+		for (let node of nodesToReload) {
+			if (node.geometryNode && node.geometryNode.loaded) {
+				// Dispose the geometry node - this automatically:
+				// - Frees GPU memory via geometry.dispose()
+				// - Removes scene node from THREE.js hierarchy via dispose handlers
+				// - Sets loaded = false
+				// - Converts node back to unloaded geometry node
+				node.geometryNode.dispose();
+			}
+		}
+		
+		// Clear arrays - visibility system will rebuild from scratch on next frame
+		this.visibleNodes = [];
+		this.visibleGeometry = [];
+	}
+
 }
-
-
-
-
-
-
-
-
-
-
