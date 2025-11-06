@@ -588,4 +588,46 @@ export class Scene extends EventDispatcher{
 	removeAnnotation(annotationToRemove) {
 		this.annotations.remove(annotationToRemove);
 	}
+
+	/**
+	 * KATAPULT MODIFICATION - 2025-11-04
+	 * 
+	 * Forces a reload of all visible nodes in a specific point cloud.
+	 * This is a convenience wrapper around PointCloudOctree.forceReloadVisibleNodes().
+	 * 
+	 * Useful when point sizes or rendering properties get "stuck" on certain nodes.
+	 * 
+	 * Usage:
+	 *   scene.forceReloadPointCloud(pointcloud);
+	 * 
+	 * @param {PointCloudOctree} pointcloud - The point cloud to reload
+	 * @author Katapult Development
+	 */
+	forceReloadPointCloud(pointcloud) {
+		if (pointcloud && typeof pointcloud.forceReloadVisibleNodes === 'function') {
+			pointcloud.forceReloadVisibleNodes();
+		}
+	}
+
+	/**
+	 * KATAPULT MODIFICATION - 2025-11-04
+	 * 
+	 * Forces a reload of all visible nodes in ALL point clouds in the scene.
+	 * This is useful when you have multiple point clouds and want to refresh them all at once.
+	 * 
+	 * Useful when point sizes or rendering properties get "stuck" on certain nodes
+	 * across multiple point clouds.
+	 * 
+	 * Usage:
+	 *   scene.forceReloadAllPointClouds();
+	 * 
+	 * @author Katapult Development
+	 */
+	forceReloadAllPointClouds() {
+		for (let pointcloud of this.pointclouds) {
+			if (pointcloud && typeof pointcloud.forceReloadVisibleNodes === 'function') {
+				pointcloud.forceReloadVisibleNodes();
+			}
+		}
+	}
 };
