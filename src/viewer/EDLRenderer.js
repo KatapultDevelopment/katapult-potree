@@ -83,7 +83,7 @@ export class EDLRenderer{
 		// HACK? removed because of error, was this important?
 		//this.viewer.renderer.clearTarget(target, true, true, true);
 
-		this.render();
+		this.render({camera: camera}); // Katapult fork fix: was missing camera parameter
 
 		let pixelCount = width * height;
 		let buffer = new Uint8Array(4 * pixelCount);
