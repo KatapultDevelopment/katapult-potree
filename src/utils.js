@@ -1092,7 +1092,11 @@ Utils.screenPass = new function () {
 		if (typeof target === 'undefined') {
 			renderer.render(this.screenScene, this.camera);
 		} else {
-			renderer.render(this.screenScene, this.camera, target);
+			// renderer.render(this.screenScene, this.camera, target); // OLD syntax
+			// Katapult fork fixes for new three.js versions:
+			renderer.setRenderTarget(target);
+			renderer.render(this.screenScene, this.camera);
+			renderer.setRenderTarget(null);
 		}
 	};
 }();
