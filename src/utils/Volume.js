@@ -18,6 +18,7 @@ export class Volume extends THREE.Object3D {
 		this._visible = true;
 		this.showVolumeLabel = true;
 		this._modifiable = args.modifiable || true;
+		this.customLabelText = null;  // When set, displays this text instead of calculated volume
 
 		this.label = new TextSprite('0');
 		this.label.setBorderColor({r: 0, g: 255, b: 0, a: 0.0});
