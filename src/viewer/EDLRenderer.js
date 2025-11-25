@@ -83,10 +83,20 @@ export class EDLRenderer{
 		// HACK? removed because of error, was this important?
 		//this.viewer.renderer.clearTarget(target, true, true, true);
 
-		this.render();
+		// Katapult per Claude (next 3 lines): added to replace removed clearTarget method, commented out by others, above
+		this.viewer.renderer.setRenderTarget(target); 
+		this.viewer.renderer.clear(true, true, true);
+		this.viewer.renderer.setRenderTarget(null);
+		
+		this.render({camera: camera}); // Katapult fork fix: was missing camera parameter
 
 		let pixelCount = width * height;
 		let buffer = new Uint8Array(4 * pixelCount);
+
+		// Set the target as active before reading // Katapult per Claude (next 3 lines)
+		this.viewer.renderer.setRenderTarget(target);
+		this.viewer.renderer.readRenderTargetPixels(target, 0, 0, width, height, buffer);
+		this.viewer.renderer.setRenderTarget(null);
 
 		this.viewer.renderer.readRenderTargetPixels(target, 0, 0, width, height, buffer);
 

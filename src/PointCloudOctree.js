@@ -1140,14 +1140,63 @@ export class PointCloudOctree extends PointCloudTree {
 
 	}
 
+	/**
+	 * KATAPULT MODIFICATION - 2025-11-04
+	 * 
+	 * Forces a complete re-evaluation and reload of all currently visible nodes by:
+	 * 1. Incrementing the global transform version to force matrix recalculation
+	 * 2. Resetting each node's transform version to force individual recalculation
+	 * 3. Disposing node geometries and clearing visibility arrays
+	 * 
+	 * This is useful when point sizes or other rendering properties get "stuck" on
+	 * certain nodes and need to be refreshed. This method forces the visibility system
+	 * to completely re-evaluate which nodes should be visible and at what LOD, rather
+	 * than just reloading the same nodes that were already visible.
+	 * 
+	 * The method is memory-safe because:
+	 * - dispose() frees GPU buffers
+	 * - Dispose handlers automatically remove scene nodes from hierarchy
+	 * - Nodes revert to lightweight unloaded geometry nodes
+	 * - The visibility system can reload them fresh on next frame with proper LOD
+	 * 
+	 * Usage:
+	 *   pointcloud.forceReloadVisibleNodes();
+	 * 
+	 * @author Katapult Development
+	 */
+	forceReloadVisibleNodes() {
+		// Increment the global transform version for this point cloud
+		// This forces ALL nodes to recalculate their transforms and screen projections
+		if (Potree._pointcloudTransformVersion && Potree._pointcloudTransformVersion.has(this)) {
+			const version = Potree._pointcloudTransformVersion.get(this);
+			version.number++;
+			// Note: We intentionally don't update version.transform here because
+			// we want to force recalculation even though the transform hasn't actually changed
+		}
+		
+		// Copy array to avoid issues with array modification during iteration
+		const nodesToReload = this.visibleNodes.slice();
+		
+		for (let node of nodesToReload) {
+			// Reset the node's transform version to force recalculation
+			if (node._transformVersion !== undefined) {
+				node._transformVersion = -1;
+			}
+			
+			if (node.geometryNode && node.geometryNode.loaded) {
+				// Dispose the geometry node - this automatically:
+				// - Frees GPU memory via geometry.dispose()
+				// - Removes scene node from THREE.js hierarchy via dispose handlers
+				// - Sets loaded = false
+				// - Converts node back to unloaded geometry node
+				node.geometryNode.dispose();
+			}
+		}
+		
+		// Clear arrays - visibility system will rebuild from scratch on next frame
+		// with forced re-evaluation of the entire octree
+		this.visibleNodes = [];
+		this.visibleGeometry = [];
+	}
+
 }
-
-
-
-
-
-
-
-
-
-
