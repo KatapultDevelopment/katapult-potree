@@ -122,8 +122,12 @@ export class EptLazBatcher {
 					new THREE.BufferAttribute(pointSourceIds, 1));
 			g.setAttribute('indices',
 					new THREE.BufferAttribute(indices, 4));
-			g.setAttribute('gps-time',
-					new THREE.BufferAttribute(gpsTime, 1));
+			const gpsTimeAttr = new THREE.BufferAttribute(gpsTime, 1);
+			gpsTimeAttr.potree = {
+				offset: e.data.gpsMeta.offset,
+				scale: 1
+			};
+			g.setAttribute('gps-time', gpsTimeAttr);
 			this.node.gpsTime = e.data.gpsMeta;
 
 			g.attributes.indices.normalized = true;

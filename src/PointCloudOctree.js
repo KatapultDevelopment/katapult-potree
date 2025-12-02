@@ -975,6 +975,7 @@ export class PointCloudOctree extends PointCloudTree {
 
 			}
 
+			hit.node = node.geometryNode;
 			hit.point = point;
 		}
 

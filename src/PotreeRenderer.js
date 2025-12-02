@@ -862,14 +862,24 @@ export class Renderer {
 				const bufferAttribute = geometry.attributes["gps-time"];
 				const attGPS = octree.getAttribute("gps-time");
 
-				let initialRange = attGPS.initialRange;
-				let initialRangeSize = initialRange[1] - initialRange[0];
-
 				let globalRange = attGPS.range;
 				let globalRangeSize = globalRange[1] - globalRange[0];
 
-				let scale = initialRangeSize / globalRangeSize;
-				let offset = -(globalRange[0] - initialRange[0]) / initialRangeSize;
+				let scale, offset;
+				const potreeData = bufferAttribute.potree;
+
+				if (potreeData && potreeData.scale === 1) {
+					// EPT format: buffer = actual - nodeOffset (not normalized)
+					const nodeOffset = potreeData.offset;
+					scale = 1 / globalRangeSize;
+					offset = nodeOffset - globalRange[0];
+				} else {
+					// Potree 2.0 format: buffer already 0-1 normalized
+					let initialRange = attGPS.initialRange;
+					let initialRangeSize = initialRange[1] - initialRange[0];
+					scale = initialRangeSize / globalRangeSize;
+					offset = -(globalRange[0] - initialRange[0]) / initialRangeSize;
+				}
 
 				scale = Number.isNaN(scale) ? 1 : scale;
 				offset = Number.isNaN(offset) ? 0 : offset;
