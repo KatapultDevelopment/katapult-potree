@@ -45,6 +45,20 @@ function createHeightLabel(){
 	return heightLabel;
 }
 
+function createHorizontalLabel(){
+	const horizontalLabel = new TextSprite('');
+
+	horizontalLabel.setTextColor({r: 140, g: 250, b: 250, a: 1.0});
+	horizontalLabel.setBorderColor({r: 0, g: 0, b: 0, a: 1.0});
+	horizontalLabel.setBackgroundColor({r: 0, g: 0, b: 0, a: 1.0});
+	horizontalLabel.fontsize = 16;
+	horizontalLabel.material.depthTest = false;
+	horizontalLabel.material.opacity = 1;
+	horizontalLabel.visible = false;
+
+	return horizontalLabel;
+}
+
 function createAreaLabel(){
 	const areaLabel = new TextSprite('');
 
@@ -311,6 +325,7 @@ export class Measure extends THREE.Object3D {
 
 		this.heightEdge = createHeightLine();
 		this.heightLabel = createHeightLabel();
+		this.horizontalLabel = createHorizontalLabel();
 		this.areaLabel = createAreaLabel();
 		this.circleRadiusLabel = createCircleRadiusLabel();
 		this.circleRadiusLine = createCircleRadiusLine();
@@ -321,6 +336,7 @@ export class Measure extends THREE.Object3D {
 
 		this.add(this.heightEdge);
 		this.add(this.heightLabel);
+		this.add(this.horizontalLabel);
 		this.add(this.areaLabel);
 		this.add(this.circleRadiusLabel);
 		this.add(this.circleRadiusLine);
@@ -715,6 +731,7 @@ export class Measure extends THREE.Object3D {
 			let heightEdge = this.heightEdge;
 			heightEdge.visible = this.showHeight;
 			this.heightLabel.visible = this.showHeight;
+			this.horizontalLabel.visible = this.showHeight;
 
 			if (this.showHeight) {
 				let sorted = this.points.slice().sort((a, b) => a.position.z - b.position.z);
@@ -757,6 +774,24 @@ export class Measure extends THREE.Object3D {
 				let txtHeight = Utils.addCommas(height.toFixed(2));
 				let msg = `${txtHeight} ${suffix}`;
 				this.heightLabel.setText(msg);
+
+				// horizontal distance label
+				let dx = highPoint.x - lowPoint.x;
+				let dy = highPoint.y - lowPoint.y;
+				let horizontalDist = Math.sqrt(dx * dx + dy * dy);
+
+				let horizontalLabelPosition = lowPoint.clone().add(start).multiplyScalar(0.5);
+				this.horizontalLabel.position.copy(horizontalLabelPosition);
+
+				let hdSuffix = "";
+				if(this.lengthUnit != null && this.lengthUnitDisplay != null){
+					horizontalDist = horizontalDist / this.lengthUnit.unitspermeter * this.lengthUnitDisplay.unitspermeter;
+					hdSuffix = this.lengthUnitDisplay.code;
+				}
+
+				let txtHD = Utils.addCommas(horizontalDist.toFixed(2));
+				let hdMsg = `${txtHD} ${hdSuffix}`;
+				this.horizontalLabel.setText(hdMsg);
 			}
 		}
 
